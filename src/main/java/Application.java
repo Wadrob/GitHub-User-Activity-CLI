@@ -1,11 +1,16 @@
 import manager.GitActivityManager;
+import service.GitActivityService;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Application {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        GitActivityManager gitActivityManager = new GitActivityManager();
+        GitActivityService gitActivityService = new GitActivityService();
+        Scanner scanner = new Scanner(System.in);
+
+        GitActivityManager gitActivityManager = new GitActivityManager(gitActivityService, scanner);
         gitActivityManager.run();
     }
 }
