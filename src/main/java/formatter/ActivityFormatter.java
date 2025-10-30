@@ -9,36 +9,55 @@ import java.util.List;
 
 public class ActivityFormatter {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     public String formatActivities(String json) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        List<Activity> activities = mapper.readValue(json, new TypeReference<>() {
+
+        List<Activity> activities = MAPPER.readValue(json, new TypeReference<>() {
         });
 
         StringBuilder sb = new StringBuilder("Output:\n");
 
-        for (Activity a : activities) {
-            switch (a.type) {
+        for (Activity activity : activities) {
+
+            String name = activity.getRepo().getName();
+            String refType = activity.getPayload().getRefType();
+            String ref = activity.getPayload().getRef();
+            String type = activity.getType();
+
+            switch (type) {
                 case "PushEvent" -> {
-                    String branch = (a.payload != null && a.payload.ref != null)
-                            ? a.payload.ref.replace("refs/heads/", "")
-                            : "unknown branch";
-                    sb.append(String.format("- Pushed to %s (branch %s)%n", a.repo.name, branch));
+                    sb.append(String.format("- Pushed to %s (branch %s)%n", name, getBranch(activity)));
                 }
                 case "CreateEvent" -> {
-                    if ("branch".equals(a.payload.refType)) {
-                        sb.append(String.format("- Created a branch %s in %s%n", a.payload.ref, a.repo.name));
-                    } else if ("repository".equals(a.payload.refType)) {
-                        sb.append(String.format("- Created a new repository %s%n", a.repo.name));
+                    if ("branch".equals(refType)) {
+                        sb.append(String.format("- Created activity branch %s in %s%n", ref, name));
+                    } else if ("repository".equals(refType)) {
+                        sb.append(String.format("- Created activity new repository %s%n", name));
                     } else {
-                        sb.append(String.format("- Created something in %s%n", a.repo.name));
+                        sb.append(String.format("- Created something in %s%n", name));
                     }
                 }
-                case "IssuesEvent" -> sb.append(String.format("- Opened or modified an issue in %s%n", a.repo.name));
-                case "WatchEvent" -> sb.append(String.format("- Starred %s%n", a.repo.name));
-                default -> sb.append(String.format("- %s in %s%n", a.type, a.repo.name));
+                case "IssuesEvent" -> sb.append(String.format("- Opened or modified an issue in %s%n", name));
+                case "WatchEvent" -> sb.append(String.format("- Starred %s%n", name));
+                default -> sb.append(String.format("- %s in %s%n", type, name));
             }
         }
 
         return sb.toString();
+    }
+
+    private String getBranch(Activity activity) {
+        return isPayloadRefNotNull(activity)
+                ? replaceBranchNameWithWhiteSpace(activity)
+                : "unknown branch";
+    }
+
+    private String replaceBranchNameWithWhiteSpace(Activity activity) {
+        return activity.getPayload().getRef().replace("refs/heads/", "");
+    }
+
+    private boolean isPayloadRefNotNull(Activity activity) {
+        return activity.getPayload() != null && activity.getPayload().getRef() != null;
     }
 }

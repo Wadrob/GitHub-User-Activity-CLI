@@ -7,15 +7,21 @@ import java.util.Scanner;
 
 public class GitActivityManager {
 
+    private final GitActivityService gitActivityService;
+    private final Scanner scanner;
+
+    public GitActivityManager(GitActivityService gitActivityService, Scanner scanner) {
+        this.gitActivityService = gitActivityService;
+        this.scanner = scanner;
+    }
+
     public void run() throws IOException, InterruptedException {
-        Scanner scan = new Scanner(System.in);
-        GitActivityService gitActivityService = new GitActivityService();
-        System.out.println("Please enter username for git-hub public activities:");
+        System.out.println("Enter GitHub username (or type 'quit' to exit):");
 
         while (true) {
-            String line = scan.nextLine();
+            String line = scanner.nextLine();
 
-            if (line.contains("quit")) {
+            if (line.equalsIgnoreCase("quit")) {
                 System.out.println("Goodbye");
                 break;
             } else {

@@ -7,16 +7,20 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 
 public class GitActivityService {
 
+    private final HttpClient client = HttpClient.newHttpClient();
+
     public String getActivities(String user) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request;
 
         try {
             request = HttpRequest.newBuilder()
                     .uri(URI.create(String.format("https://api.github.com/users/%s/events/public?per_page=100", user)))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("User-Agent", "GitHub-User-Activity-CLI")
                     .GET()
                     .build();
         } catch (Exception e) {
@@ -25,7 +29,7 @@ public class GitActivityService {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if (response.statusCode() == 200){
+        if (response.statusCode() == 200) {
             ActivityFormatter activityFormatter = new ActivityFormatter();
             return activityFormatter.formatActivities(response.body());
         } else {
